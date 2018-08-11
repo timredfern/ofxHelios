@@ -1,5 +1,12 @@
 #include "ofApp.h"
+/*
+    example-colourpolyline
 
+    colourPolyline subclasses openFrameworks polyline to add per-vertex colours
+
+    colourPolyline can be drawn to the screen or by ofxHelios
+
+*/
 int MAX_POINTS=40000;
 int NUM_POINTS=128;
 int LASER_INTENSITY=37;
@@ -21,11 +28,6 @@ void testApp::update(){
 void testApp::draw(){
 	ofBackground(0);
 	ofSetColor(255,255,255);
-
-    /*
-	ofxHelios draws using screen coordinates, centring the centre of
-    the screen at the centre of the laser drawable area
-    */
 
     float pfactor=(PI*2)/NUM_POINTS;
 

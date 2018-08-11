@@ -1,5 +1,17 @@
 #include "ofApp.h"
 
+/*
+
+    example-transforms
+
+    ofxHelios draws using screen coordinates, centring the centre of
+    the screen at the centre of the laser drawable area
+
+    transform the polygons points to move the laser drawing 
+    as ofxHelios doesn't inherit the transform (yet)
+
+*/
+
 int MAX_POINTS=20000;
 int LASER_INTENSITY=37;
 
