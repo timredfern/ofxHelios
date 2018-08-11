@@ -11,3 +11,5 @@ cd example-colourpolyline<br>
 make<br>
 cp ../libs/libheliosdac/lib/osx/libHeliosDacAPI.dylib bin/example-colourpolyline.app/Contents/MacOS/<br>
 make RunRelease
+
+[![Build status](https://travis-ci.org/timredfern/ofxHelios?branch=master)](https://travis-ci.org/timredfern/ofxHelios)
