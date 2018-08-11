@@ -1,11 +1,13 @@
 # ofxHelios
 Openframeworks addon for drawing vectors with the Helios Laser DAC
 
+http://pages.bitlasers.com/helios/
+
 tested as a Makefile build for OSX only
 
 to test:
 
-cd example-circles<br>
+cd example-colourpolyline<br>
 make<br>
-cp ../libs/libheliosdac/lib/osx/libHeliosDacAPI.dylib bin/example-circles.app/Contents/MacOS/<br>
+cp ../libs/libheliosdac/lib/osx/libHeliosDacAPI.dylib bin/example-colourpolyline.app/Contents/MacOS/<br>
 make RunRelease
