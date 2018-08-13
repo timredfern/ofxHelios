@@ -33,7 +33,7 @@ common:
 
 	# any special flag that should be passed to the compiler when using this
 	# addon
-	ADDON_CFLAGS = -fPIC	
+	ADDON_CFLAGS = -fPIC
 
 	# any special flag that should be passed to the linker when using this
 	# addon, also used for system libraries with -lname
