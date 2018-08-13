@@ -3,9 +3,9 @@ Openframeworks addon for drawing vectors with the Helios Laser DAC
 
 http://pages.bitlasers.com/helios/
 
-tested as a Makefile build for OSX only
+Makefile builds for OSX and linux64
 
-to test:
+to test (on OSX):
 
 cd example-colourpolyline<br>
 make<br>
