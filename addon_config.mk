@@ -167,7 +167,7 @@ osx:
 	# a specific platform
 	#ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
 
-
+	PLATFORM_CXXFLAGS += -std=c++14
 	# when parsing the file system looking for include paths exclude this for all or
 	# a specific platform
 	#ADDON_INCLUDES_EXCLUDE = libs/libfreenect/platform/%
