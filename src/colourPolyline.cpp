@@ -1,6 +1,16 @@
 #include "colourPolyline.h"
 
 
+void colourPolyline::transform(ofMatrix4x4 xform){
+	auto verts=getVertices();
+	vector <ofDefaultVertexType> temp;
+    for (auto& v:verts){
+        temp.push_back(ofVec3f(v)*xform);
+    }
+    clear();
+    addVertices(temp);
+}
+
 void colourPolyline::addVertex( float x, float y){
 	addVertex(ofPoint(x,y));
 }

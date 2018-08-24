@@ -2,6 +2,7 @@
 #include "ofPolyline.h"
 #include "ofMain.h"
 
+
 class colourPolyline: public ofPolyline {
 	public:
 
@@ -17,6 +18,8 @@ class colourPolyline: public ofPolyline {
 			ofPolyline::clear();
 			pointColours.clear();
 		}
+
+		void transform(ofMatrix4x4 xform);
 
 		void addVertex( float x, float y);
 

@@ -29,19 +29,11 @@ void testApp::update(){
 
 }
 
-ofPolyline polyLineTransform(const ofPolyline& poly, ofMatrix4x4 xform){
-    ofPolyline tempPoly;
-    for (auto& p:poly){
-        tempPoly.addVertex(ofVec3f(p)*xform);
-    }
-    return tempPoly;
-}
-
-ofPolyline makePolygon(int num,float diam){
-    ofPolyline poly;
+colourPolyline makePolygon(int num,float diam){
+    colourPolyline poly;
     float step=PI*2/num;
     for (int i=0;i<=num;i++){
-        poly.addVertex(cos(step*i)*diam,sin(step*i)*diam);
+        poly.addVertex(cos(step*i)*diam,sin(step*i)*diam,int(i*(255.0f/2))%256,int(i+1*(255.0f/2))%256,int(i+2*(255.0f/2))%256);
     }
     return poly;
 }
@@ -51,13 +43,14 @@ void testApp::draw(){
 	ofBackground(0);
 	ofSetColor(255,255,255);
 
-    vector <ofPolyline> squares;
+    vector <colourPolyline> squares;
 
     for (int i=0;i<4;i++){
         ofMatrix4x4 m = ofMatrix4x4::newIdentityMatrix();
         m.rotateRad(ofGetElapsedTimef(),0,0,1);
         m.translate(ofGetWidth()/2+(cos(i*PI*0.5)*300),ofGetHeight()/2+(sin(i*PI*0.5)*300),0);
-        ofPolyline square=polyLineTransform(makePolygon(4,400),m);
+        colourPolyline square=makePolygon(6,400);
+        square.transform(m);
         square.draw();
         squares.push_back(square);
     }
