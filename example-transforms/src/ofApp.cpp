@@ -49,8 +49,7 @@ void testApp::draw(){
         ofMatrix4x4 m = ofMatrix4x4::newIdentityMatrix();
         m.rotateRad(ofGetElapsedTimef(),0,0,1);
         m.translate(ofGetWidth()/2+(cos(i*PI*0.5)*300),ofGetHeight()/2+(sin(i*PI*0.5)*300),0);
-        colourPolyline square=makePolygon(6,400);
-        square.transform(m);
+        colourPolyline square=makePolygon(6,400).getTransformed(m);
         square.draw();
         squares.push_back(square);
     }

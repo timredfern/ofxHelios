@@ -1,14 +1,24 @@
 #include "colourPolyline.h"
 
-
-void colourPolyline::transform(ofMatrix4x4 xform){
+vector <ofDefaultVertexType> colourPolyline::getTransformedVerts(ofMatrix4x4 xform){
 	auto verts=getVertices();
 	vector <ofDefaultVertexType> temp;
     for (auto& v:verts){
         temp.push_back(ofVec3f(v)*xform);
     }
+    return temp;
+}
+
+void colourPolyline::transform(ofMatrix4x4 xform){
+	auto temp=getTransformedVerts(xform);
     clear();
     addVertices(temp);
+}
+
+colourPolyline colourPolyline::getTransformed(ofMatrix4x4 xform){
+	colourPolyline transformed = *this;
+	transformed.transform(xform);
+	return transformed;
 }
 
 void colourPolyline::addVertex( float x, float y){

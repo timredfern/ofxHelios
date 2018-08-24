@@ -19,6 +19,10 @@ class colourPolyline: public ofPolyline {
 			pointColours.clear();
 		}
 
+		vector <ofDefaultVertexType> getTransformedVerts(ofMatrix4x4 xform);
+		
+		colourPolyline getTransformed(ofMatrix4x4 xform);
+
 		void transform(ofMatrix4x4 xform);
 
 		void addVertex( float x, float y);
