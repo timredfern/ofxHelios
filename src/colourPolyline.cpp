@@ -78,3 +78,21 @@ void colourPolyline::mix(colourPolyline& poly,float amount){
 			(pointColours[i]*(1.0f-amount));
 	}
 }
+
+const ofPoint colourPolyline::getPointAtIndexInterpolated(const float index){
+	float fraction=index-((int)index);
+	if (fraction>0.0f){
+		ofPoint p1=ofPolyline::operator[]((int)index);
+		ofPoint p2=ofPolyline::operator[]((int)index+1);
+		return ofPoint((p1.x*(1.0f-fraction))+(p2.x*fraction));
+	}
+	else return ofPolyline::operator[]((int)index);
+}
+
+const ofColor colourPolyline::getColourAtIndexInterpolated(const float index){
+	float fraction=index-((int)index);
+	if (fraction>0.0f){
+		return (pointColours[(int)index]*(1.0f-fraction))+(pointColours[(int)index+1]*fraction);
+	}
+	return pointColours[(int)index];
+}

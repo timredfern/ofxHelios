@@ -45,6 +45,10 @@ class colourPolyline: public ofPolyline {
 
 		void mix(colourPolyline& poly,float amount=1.0f);
 
+		const ofPoint getPointAtIndexInterpolated(const float index);
+
+		const ofColor getColourAtIndexInterpolated(const float index);
+
 	private:
 
 		vector <ofColor> pointColours;
