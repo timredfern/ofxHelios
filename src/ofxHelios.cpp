@@ -38,18 +38,23 @@ int ofxHelios::draw(vector <colourPolyline> &lines, int intensity){
     int yoffs=output_centre.y-(ofGetHeight()/2);
 
     if (device!=OFXHELIOS_NODEVICE){
+
+        //float start=ofGetElapsedTimeMillis();
+
         while (!dac.GetStatus(device)); //timeout for this?
 
-        vector <HeliosPoint> points;
+        //while(!lock()){}; //timeout for this?
+
+        points.clear();
 
         for (auto& line:lines){
 
             float dist=abs(prev_point.distance(line[0]));
 
-            if (dist>SUBDIVIDE){
+            if (dist>subdivide){
                 //draw blanking points if required (only between shapes)
 
-                for (float j=0;j<dist;j+=SUBDIVIDE){
+                for (float j=0;j<dist;j+=subdivide){
                     float amt=j/dist;
                     points.push_back(HeliosPoint(
                         (uint16_t)(((prev_point.x*(1.0-amt))+(line[0].x*amt)+xoffs)),
@@ -57,7 +62,7 @@ int ofxHelios::draw(vector <colourPolyline> &lines, int intensity){
                         0,0,0,0)); //blank point
                 }
             }
-            for (int k=0;k<BLANK_NUM;k++){
+            for (int k=0;k<blank_num;k++){
                 points.push_back(HeliosPoint(
                     (uint16_t)(line[0].x+xoffs),
                     (uint16_t)(line[0].y+yoffs),
@@ -66,7 +71,7 @@ int ofxHelios::draw(vector <colourPolyline> &lines, int intensity){
             int i;
             for (i=0;i<line.size()-1;i++){
                 float dist=abs(ofPoint(line[i]).distance(ofPoint(line[i+1])));
-                for (float j=0;j<dist;j+=SUBDIVIDE){
+                for (float j=0;j<dist;j+=subdivide){
 
                     //draw way points
                     float amt=j/dist;
@@ -80,10 +85,10 @@ int ofxHelios::draw(vector <colourPolyline> &lines, int intensity){
                     );
                 }
                 float angle=line.getDegreesAtIndex(i);
-                if (angle>MAX_ANGLE||(i==line.size()-2)){
+                if (angle>max_angle||(i==line.size()-2)){
 
                     //dwell points to wait on a corner for laser to catch up
-                    for (int l=0;l<((angle/180)*BLANK_NUM);l++){
+                    for (int l=0;l<((angle/180)*blank_num);l++){
                         points.push_back(HeliosPoint(
                             (uint16_t)(line[i+1].x+xoffs),
                             (uint16_t)(line[i+1].y+yoffs),
@@ -98,7 +103,7 @@ int ofxHelios::draw(vector <colourPolyline> &lines, int intensity){
                 prev_colour=line.getColourAt(i+1);
             }
             
-            for (int k=0;k<BLANK_NUM;k++){
+            for (int k=0;k<blank_num;k++){
                 points.push_back(HeliosPoint(
                     (uint16_t)(prev_point.x+xoffs),
                     (uint16_t)(prev_point.y+yoffs),
@@ -116,10 +121,11 @@ int ofxHelios::draw(vector <colourPolyline> &lines, int intensity){
             p.y=min((uint16_t)0xfff,p.y);
         }
 
-        if (HELIOS_ERROR==dac.WriteFrame(device, pps, HELIOS_FLAGS_DEFAULT, &points[0], min(HELIOS_MAX_POINTS,(int)points.size()))){
-            printf("ofxHelios: write error (%i,%i,%i,%i)\n",device, pps, HELIOS_FLAGS_DEFAULT, (int)points.size());
-            return -1;
-        }
+        //unlock();
+
+        //float time=ofGetElapsedTimeMillis()-start;
+
+        int err=dac.WriteFrame(device, pps, HELIOS_FLAGS_DEFAULT, &points[0], min(HELIOS_MAX_POINTS,(int)points.size()));
 
         return points.size();
       
@@ -133,6 +139,14 @@ int ofxHelios::draw(vector <colourPolyline> &lines, int intensity){
 void ofxHelios::threadedFunction(){
 
     while(isThreadRunning()) {
+
+        while(!lock()){};
+
+        //write frame to DAC
+
+        int err=dac.WriteFrame(device, pps, HELIOS_FLAGS_DEFAULT, &points[0], min(HELIOS_MAX_POINTS,(int)points.size()));
+
+        unlock();
          
     }
 }

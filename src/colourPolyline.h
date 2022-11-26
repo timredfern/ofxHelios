@@ -21,7 +21,9 @@ class colourPolyline: public ofPolyline {
 
 		vector <ofDefaultVertexType> getTransformedVerts(ofMatrix4x4 xform);
 		
-		colourPolyline getTransformed(ofMatrix4x4 xform);
+		colourPolyline getTransformed(ofMatrix4x4 xform) const;
+
+		colourPolyline getBlended(float amount) const;
 
 		void transform(ofMatrix4x4 xform);
 
@@ -41,7 +43,7 @@ class colourPolyline: public ofPolyline {
 
 		void draw();
 
-		const ofColor getColourAt(const int i);
+		const ofColor getColourAt(const int i) const;
 
 		void mix(colourPolyline& poly,float amount=1.0f);
 

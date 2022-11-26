@@ -10,7 +10,7 @@
 
 #ifndef ofxHelios_h
 #define ofxHelios_h
-#define OFXHELIOS_VERSION 0.1
+#define OFXHELIOS_VERSION 0.1.1
 #define OFXHELIOS_NODEVICE -1
 #include "ofMain.h"
 #include "colourPolyline.h"
@@ -46,11 +46,17 @@ public:
         }
         output_centre=ofPoint(0x7ff,0x7ff);
         prev_point=output_centre;
+
+        subdivide=SUBDIVIDE;
+        blank_num=BLANK_NUM;
+        max_angle=MAX_ANGLE;
+
+        //startThread();
     }
     
     ~ofxHelios()
     {
-        stopThread();
+        //stopThread();
         dac.CloseDevices();
     }
 
@@ -99,11 +105,13 @@ public:
     int draw(vector <ofPolyline> &lines,ofColor colour=ofColor(255,255,255),int intensity=255);
     int draw(vector <colourPolyline> &lines, int intensity=255);
 
-    void threadedFunction();
+    
 
     //isReady()
     
     private:
+
+        void threadedFunction();
 
         int device;
         HeliosDac dac;
@@ -116,6 +124,8 @@ public:
         ofPoint output_centre;
         ofPoint prev_point;
         ofColor prev_colour;
+
+        vector <HeliosPoint> points;
     
 };
 

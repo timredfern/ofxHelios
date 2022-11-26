@@ -15,10 +15,19 @@ void colourPolyline::transform(ofMatrix4x4 xform){
     addVertices(temp);
 }
 
-colourPolyline colourPolyline::getTransformed(ofMatrix4x4 xform){
+colourPolyline colourPolyline::getTransformed(ofMatrix4x4 xform) const{
 	colourPolyline transformed = *this;
 	transformed.transform(xform);
 	return transformed;
+}
+
+
+colourPolyline colourPolyline::getBlended(float amount) const{
+	colourPolyline blended = *this;
+	for (auto& c:blended.pointColours){
+		c=c*amount;
+	}
+	return blended;
 }
 
 void colourPolyline::addVertex( float x, float y){
@@ -52,7 +61,7 @@ void colourPolyline::setColour(const ofColor& c){
 	}
 }
 
-const ofColor colourPolyline::getColourAt(const int i){
+const ofColor colourPolyline::getColourAt(const int i) const{
 	return pointColours[i];
 }
 
@@ -84,7 +93,7 @@ const ofPoint colourPolyline::getPointAtIndexInterpolated(const float index){
 	if (fraction>0.0f){
 		ofPoint p1=ofPolyline::operator[]((int)index);
 		ofPoint p2=ofPolyline::operator[]((int)index+1);
-		return ofPoint((p1.x*(1.0f-fraction))+(p2.x*fraction));
+		return ofPoint((p1*(1.0f-fraction))+(p2*fraction));
 	}
 	else return ofPolyline::operator[]((int)index);
 }
