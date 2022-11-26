@@ -10,7 +10,7 @@
 
 #ifndef ofxHelios_h
 #define ofxHelios_h
-#define OFXHELIOS_VERSION 0.1.1
+#define OFXHELIOS_VERSION "0.1.1"
 #define OFXHELIOS_NODEVICE -1
 #include "ofMain.h"
 #include "colourPolyline.h"
