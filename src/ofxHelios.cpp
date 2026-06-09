@@ -7,6 +7,7 @@
 //
 
 #include "ofxHelios.h"
+#include <algorithm>
 
 
 int ofxHelios::draw(vector <ofPolyline> &lines,ofColor colour,int intensity){
@@ -117,15 +118,15 @@ int ofxHelios::draw(vector <colourPolyline> &lines, int intensity){
         }
 
         for (auto& p:points){ //clip scale
-            p.x=min((uint16_t)0xfff,p.x);
-            p.y=min((uint16_t)0xfff,p.y);
+            p.x=std::min((uint16_t)0xfff,p.x);
+            p.y=std::min((uint16_t)0xfff,p.y);
         }
 
         //unlock();
 
         //float time=ofGetElapsedTimeMillis()-start;
 
-        int err=dac.WriteFrame(device, pps, HELIOS_FLAGS_DEFAULT, &points[0], min(HELIOS_MAX_POINTS,(int)points.size()));
+        int err=dac.WriteFrame(device, pps, HELIOS_FLAGS_DEFAULT, &points[0], std::min(HELIOS_MAX_POINTS,(int)points.size()));
 
         return points.size();
       
@@ -144,7 +145,7 @@ void ofxHelios::threadedFunction(){
 
         //write frame to DAC
 
-        int err=dac.WriteFrame(device, pps, HELIOS_FLAGS_DEFAULT, &points[0], min(HELIOS_MAX_POINTS,(int)points.size()));
+        int err=dac.WriteFrame(device, pps, HELIOS_FLAGS_DEFAULT, &points[0], std::min(HELIOS_MAX_POINTS,(int)points.size()));
 
         unlock();
          

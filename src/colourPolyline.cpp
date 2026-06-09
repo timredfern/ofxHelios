@@ -1,4 +1,5 @@
 #include "colourPolyline.h"
+#include <algorithm>
 
 vector <ofDefaultVertexType> colourPolyline::getTransformedVerts(ofMatrix4x4 xform){
 	auto verts=getVertices();
@@ -77,7 +78,7 @@ void colourPolyline::draw(){
 }
 
 void colourPolyline::mix(colourPolyline& poly,float amount){
-	for (int i=0;i<min(poly.size(),ofPolyline::size());i++){
+	for (int i=0;i<std::min(poly.size(),ofPolyline::size());i++){
 		ofPoint p1=ofPolyline::operator[](i);
 		ofPolyline::operator[](i)=ofPoint(
 			(p1.x*(1.0f-amount))+(poly[i].x*amount),
