@@ -69,100 +69,28 @@ common:
 	# ADDON_INCLUDES_EXCLUDE =
 
 linux64:
-	# linux only, any library that should be included in the project using
-	# pkg-config
 	ADDON_PKG_CONFIG_LIBRARIES = libusb-1.0
-
-	# when parsing the file system looking for sources exclude this for all or
-	# a specific platform
-	ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
-	ADDON_SOURCES_EXCLUDE += libs/libheliosdac/src/idn/plt-windows.cpp
-
-
-	# when parsing the file system looking for include paths exclude this for all or
-	# a specific platform
-	ADDON_INCLUDES_EXCLUDE = libs/libfreenect/platform/%
-	ADDON_INCLUDES_EXCLUDE += libs/libusb-1.0/%
+	ADDON_SOURCES_EXCLUDE = libs/libheliosdac/src/idn/plt-windows.cpp
 
 linux:
-	# linux only, any library that should be included in the project using
-	# pkg-config
 	ADDON_PKG_CONFIG_LIBRARIES = libusb-1.0
-
-	# when parsing the file system looking for sources exclude this for all or
-	# a specific platform
-	ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
-	ADDON_SOURCES_EXCLUDE += libs/libheliosdac/src/idn/plt-windows.cpp
-
-
-	# when parsing the file system looking for include paths exclude this for all or
-	# a specific platform
-	ADDON_INCLUDES_EXCLUDE = libs/libfreenect/platform/%
-	ADDON_INCLUDES_EXCLUDE += libs/libusb-1.0/%
+	ADDON_SOURCES_EXCLUDE = libs/libheliosdac/src/idn/plt-windows.cpp
 
 msys2:
-	# any library that should be included in the project using pkg-config
 	ADDON_PKG_CONFIG_LIBRARIES = libusb-1.0
-
-	# when parsing the file system looking for sources exclude this for all or
-	# a specific platform
-	ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
-	ADDON_SOURCES_EXCLUDE += libs/libheliosdac/src/idn/plt-posix.cpp
-
-
-	# when parsing the file system looking for include paths exclude this for all or
-	# a specific platform
-	ADDON_INCLUDES_EXCLUDE = libs/libfreenect/platform/%
-	ADDON_INCLUDES_EXCLUDE += libs/libusb-1.0/%
-
-
-vs:
-	# source files, these will be usually parsed from the file system looking
-	# in the src folders in libs and the root of the addon. if your addon needs
-	# to include files in different places or a different set of files per platform
-	# they can be specified here
 	ADDON_SOURCES_EXCLUDE = libs/libheliosdac/src/idn/plt-posix.cpp
 
-	# include search paths, this will be usually parsed from the file system
-	# but if the addon or addon libraries need special search paths they can be
-	# specified here separated by spaces or one per line using +=
-	ADDON_INCLUDES += libs/libfreenect/platform/windows
-
-	# when parsing the file system looking for include paths exclude this for all or
-	# a specific platform
+vs:
+	ADDON_SOURCES_EXCLUDE = libs/libheliosdac/src/idn/plt-posix.cpp
+	# VS users must install libusb separately (e.g. via vcpkg: vcpkg install libusb)
 
 linuxarmv6l:
-	# linux only, any library that should be included in the project using
-	# pkg-config
 	ADDON_PKG_CONFIG_LIBRARIES = libusb-1.0
-
-	# when parsing the file system looking for sources exclude this for all or
-	# a specific platform
-	ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
-	ADDON_SOURCES_EXCLUDE += libs/libheliosdac/src/idn/plt-windows.cpp
-
-
-	# when parsing the file system looking for include paths exclude this for all or
-	# a specific platform
-	ADDON_INCLUDES_EXCLUDE = libs/libfreenect/platform/%
-	ADDON_INCLUDES_EXCLUDE += libs/libusb-1.0/%
-
+	ADDON_SOURCES_EXCLUDE = libs/libheliosdac/src/idn/plt-windows.cpp
 
 linuxarmv7l:
-	# linux only, any library that should be included in the project using
-	# pkg-config
 	ADDON_PKG_CONFIG_LIBRARIES = libusb-1.0
-
-	# when parsing the file system looking for sources exclude this for all or
-	# a specific platform
-	ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
-	ADDON_SOURCES_EXCLUDE += libs/libheliosdac/src/idn/plt-windows.cpp
-
-
-	# when parsing the file system looking for include paths exclude this for all or
-	# a specific platform
-	ADDON_INCLUDES_EXCLUDE = libs/libfreenect/platform/%
-	ADDON_INCLUDES_EXCLUDE += libs/libusb-1.0/%
+	ADDON_SOURCES_EXCLUDE = libs/libheliosdac/src/idn/plt-windows.cpp
 
 android/armeabi:
 
