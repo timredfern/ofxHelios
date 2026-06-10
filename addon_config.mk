@@ -24,7 +24,7 @@ meta:
 common:
 	# dependencies with other addons, a list of them separated by spaces
 	# or use += in several lines
-	# ADDON_DEPENDENCIES =
+	ADDON_DEPENDENCIES = ofxGui
 
 	# include search paths, this will be usually parsed from the file system
 	# but if the addon or addon libraries need special search paths they can be
@@ -76,6 +76,7 @@ linux64:
 	# when parsing the file system looking for sources exclude this for all or
 	# a specific platform
 	ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
+	ADDON_SOURCES_EXCLUDE += libs/libheliosdac/src/idn/plt-windows.cpp
 
 
 	# when parsing the file system looking for include paths exclude this for all or
@@ -91,6 +92,7 @@ linux:
 	# when parsing the file system looking for sources exclude this for all or
 	# a specific platform
 	ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
+	ADDON_SOURCES_EXCLUDE += libs/libheliosdac/src/idn/plt-windows.cpp
 
 
 	# when parsing the file system looking for include paths exclude this for all or
@@ -105,6 +107,7 @@ msys2:
 	# when parsing the file system looking for sources exclude this for all or
 	# a specific platform
 	ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
+	ADDON_SOURCES_EXCLUDE += libs/libheliosdac/src/idn/plt-posix.cpp
 
 
 	# when parsing the file system looking for include paths exclude this for all or
@@ -118,6 +121,7 @@ vs:
 	# in the src folders in libs and the root of the addon. if your addon needs
 	# to include files in different places or a different set of files per platform
 	# they can be specified here
+	ADDON_SOURCES_EXCLUDE = libs/libheliosdac/src/idn/plt-posix.cpp
 
 	# include search paths, this will be usually parsed from the file system
 	# but if the addon or addon libraries need special search paths they can be
@@ -135,6 +139,7 @@ linuxarmv6l:
 	# when parsing the file system looking for sources exclude this for all or
 	# a specific platform
 	ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
+	ADDON_SOURCES_EXCLUDE += libs/libheliosdac/src/idn/plt-windows.cpp
 
 
 	# when parsing the file system looking for include paths exclude this for all or
@@ -151,6 +156,7 @@ linuxarmv7l:
 	# when parsing the file system looking for sources exclude this for all or
 	# a specific platform
 	ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
+	ADDON_SOURCES_EXCLUDE += libs/libheliosdac/src/idn/plt-windows.cpp
 
 
 	# when parsing the file system looking for include paths exclude this for all or
@@ -163,14 +169,7 @@ android/armeabi:
 android/armeabi-v7a:
 
 osx:
-	# when parsing the file system looking for sources exclude this for all or
-	# a specific platform
-	#ADDON_SOURCES_EXCLUDE = libs/libfreenect/platform/%
-
-
-	# when parsing the file system looking for include paths exclude this for all or
-	# a specific platform
-	#ADDON_INCLUDES_EXCLUDE = libs/libfreenect/platform/%
+	ADDON_SOURCES_EXCLUDE = libs/libheliosdac/src/idn/plt-windows.cpp
 
 ios:
 

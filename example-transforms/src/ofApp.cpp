@@ -13,14 +13,14 @@
 */
 
 int MAX_POINTS=20000;
-int LASER_INTENSITY=37;
+float LASER_INTENSITY=37.0f/255.0f;
 
 
 //--------------------------------------------------------------
 void testApp::setup(){
-	laser.set_pts(MAX_POINTS);
-    laser.set_intensity(LASER_INTENSITY);
-
+	laser.setup();
+	laser.setPps(MAX_POINTS);
+	laser.setIntensity(LASER_INTENSITY);
 }
 
 //--------------------------------------------------------------

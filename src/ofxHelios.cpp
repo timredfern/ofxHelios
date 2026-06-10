@@ -1,154 +1,300 @@
 //
 //  ofxHelios.cpp
-// 
 //
 //  Created by Tim Redfern Nov 2017
-// 
+//  Rewritten 2026 - v0.2.0
 //
 
 #include "ofxHelios.h"
 #include <algorithm>
+#include <chrono>
 
+ofxHelios::ofxHelios() {}
 
-int ofxHelios::draw(vector <ofPolyline> &lines,ofColor colour,int intensity){
-    vector <colourPolyline> output;
-    for (auto& line:lines){
-        output.push_back(colourPolyline(line,colour));
-    }
-    return draw(output,intensity);
+ofxHelios::~ofxHelios() {
+	if (isThreadRunning()) {
+		stopThread();
+		frameCondition.notify_all();
+		waitForThread(true, 2000);
+	}
+	if (connected) {
+		dac.Stop(deviceIndex);
+		dac.CloseDevices();
+	}
 }
 
-int ofxHelios::draw(ofPolyline &line,ofColor colour,int intensity){
+// mode: 0 = all, 1 = USB only, 2 = network only
+int ofxHelios::openDevices(int mode, int devIdx) {
+	int count = 0;
+	switch (mode) {
+		case 1:  count = dac.OpenDevicesOnlyUsb(); break;
+		case 2:  count = dac.OpenDevicesOnlyNetwork(); break;
+		default: count = dac.OpenDevices(); break;
+	}
 
-    colourPolyline col=colourPolyline(line,colour);
-    return draw(col,intensity);
+	numDevices = count;
 
+	for (int i = 0; i < count; i++) {
+		char name[32] = {0};
+		dac.GetName(i, name);
+		ofLogNotice("ofxHelios") << "v" << OFXHELIOS_VERSION
+			<< " found DAC " << i << ": " << name
+			<< " (firmware v" << dac.GetFirmwareVersion(i)
+			<< ", " << (dac.GetIsUsb(i) ? "USB" : "network") << ")";
+	}
+
+	if (count == 0) {
+		ofLogNotice("ofxHelios") << "v" << OFXHELIOS_VERSION << " no devices found";
+		return 0;
+	}
+
+	if (devIdx >= count) {
+		ofLogError("ofxHelios") << "device index " << devIdx
+			<< " out of range (found " << count << " devices)";
+		return count;
+	}
+
+	deviceIndex = devIdx;
+	connected = true;
+	startThread();
+
+	ofLogNotice("ofxHelios") << "connected to device " << deviceIndex;
+	return count;
 }
 
-int ofxHelios::draw(colourPolyline &line, int intensity){
-    vector <colourPolyline> lines;
-    lines.push_back(line);
-    return draw(lines,intensity);
+int ofxHelios::setup(int devIdx) {
+	return openDevices(0, devIdx);
 }
 
-int ofxHelios::draw(vector <colourPolyline> &lines, int intensity){
-    //todo: move to a thread
-    //todo: inherit transform
-
-    int xoffs=output_centre.x-(ofGetWidth()/2);
-    int yoffs=output_centre.y-(ofGetHeight()/2);
-
-    if (device!=OFXHELIOS_NODEVICE){
-
-        //float start=ofGetElapsedTimeMillis();
-
-        while (!dac.GetStatus(device)); //timeout for this?
-
-        //while(!lock()){}; //timeout for this?
-
-        points.clear();
-
-        for (auto& line:lines){
-
-            float dist=abs(prev_point.distance(line[0]));
-
-            if (dist>subdivide){
-                //draw blanking points if required (only between shapes)
-
-                for (float j=0;j<dist;j+=subdivide){
-                    float amt=j/dist;
-                    points.push_back(HeliosPoint(
-                        (uint16_t)(((prev_point.x*(1.0-amt))+(line[0].x*amt)+xoffs)),
-                        (uint16_t)(((prev_point.y*(1.0-amt))+(line[0].y*amt)+yoffs)),
-                        0,0,0,0)); //blank point
-                }
-            }
-            for (int k=0;k<blank_num;k++){
-                points.push_back(HeliosPoint(
-                    (uint16_t)(line[0].x+xoffs),
-                    (uint16_t)(line[0].y+yoffs),
-                    0,0,0,0)); //blank point
-            }
-            int i;
-            for (i=0;i<line.size()-1;i++){
-                float dist=abs(ofPoint(line[i]).distance(ofPoint(line[i+1])));
-                for (float j=0;j<dist;j+=subdivide){
-
-                    //draw way points
-                    float amt=j/dist;
-                    points.push_back(HeliosPoint(
-                        (uint16_t)((line[i].x*(1.0-amt))+(line[i+1].x*amt)+xoffs),
-                        (uint16_t)((line[i].y*(1.0-amt))+(line[i+1].y*amt)+yoffs),
-                        (uint8_t)((((line.getColourAt(i).r*(1.0-amt))+(line.getColourAt(i+1).r*amt))*laserintensity)/255.0),
-                        (uint8_t)((((line.getColourAt(i).g*(1.0-amt))+(line.getColourAt(i+1).g*amt))*laserintensity)/255.0),
-                        (uint8_t)((((line.getColourAt(i).b*(1.0-amt))+(line.getColourAt(i+1).b*amt))*laserintensity)/255.0),
-                        (uint8_t)intensity)
-                    );
-                }
-                float angle=line.getDegreesAtIndex(i);
-                if (angle>max_angle||(i==line.size()-2)){
-
-                    //dwell points to wait on a corner for laser to catch up
-                    for (int l=0;l<((angle/180)*blank_num);l++){
-                        points.push_back(HeliosPoint(
-                            (uint16_t)(line[i+1].x+xoffs),
-                            (uint16_t)(line[i+1].y+yoffs),
-                            (uint8_t)(line.getColourAt(i+1).r*laserintensity/255.0),
-                            (uint8_t)(line.getColourAt(i+1).g*laserintensity/255.0),
-                            (uint8_t)(line.getColourAt(i+1).b*laserintensity/255.0),
-                            (uint8_t)intensity)
-                            );
-                    }
-                }
-                prev_point=line[i+1];
-                prev_colour=line.getColourAt(i+1);
-            }
-            
-            for (int k=0;k<blank_num;k++){
-                points.push_back(HeliosPoint(
-                    (uint16_t)(prev_point.x+xoffs),
-                    (uint16_t)(prev_point.y+yoffs),
-                    (uint8_t)((prev_colour.r*laserintensity)/255.0),
-                    (uint8_t)((prev_colour.g*laserintensity)/255.0),
-                    (uint8_t)((prev_colour.b*laserintensity)/255.0),
-                    (uint8_t)intensity)
-                );    
-            }
-            
-        }
-
-        for (auto& p:points){ //clip scale
-            p.x=std::min((uint16_t)0xfff,p.x);
-            p.y=std::min((uint16_t)0xfff,p.y);
-        }
-
-        //unlock();
-
-        //float time=ofGetElapsedTimeMillis()-start;
-
-        int err=dac.WriteFrame(device, pps, HELIOS_FLAGS_DEFAULT, &points[0], std::min(HELIOS_MAX_POINTS,(int)points.size()));
-
-        return points.size();
-      
-    }
-    return -2;
+int ofxHelios::setupUsb(int devIdx) {
+	return openDevices(1, devIdx);
 }
 
-
-    
-
-void ofxHelios::threadedFunction(){
-
-    while(isThreadRunning()) {
-
-        while(!lock()){};
-
-        //write frame to DAC
-
-        int err=dac.WriteFrame(device, pps, HELIOS_FLAGS_DEFAULT, &points[0], std::min(HELIOS_MAX_POINTS,(int)points.size()));
-
-        unlock();
-         
-    }
+int ofxHelios::setupNetwork(int devIdx) {
+	return openDevices(2, devIdx);
 }
 
+void ofxHelios::close() {
+	if (isThreadRunning()) {
+		stopThread();
+		frameCondition.notify_all();
+		waitForThread(true, 2000);
+	}
+	if (connected) {
+		dac.Stop(deviceIndex);
+		dac.CloseDevices();
+		connected = false;
+		deviceIndex = -1;
+		numDevices = 0;
+	}
+}
+
+bool ofxHelios::isConnected() const {
+	return connected;
+}
+
+// --- Frame submission ---
+
+int ofxHelios::sendFrame(std::vector<HeliosPointHighRes>& points) {
+	if (!connected) return -1;
+	if (points.empty()) return 0;
+
+	int count = (int)points.size();
+
+	{
+		std::lock_guard<std::mutex> lock(bufferMutex);
+		std::swap(backBuffer, points);
+		newFrameAvailable = true;
+	}
+	frameCondition.notify_one();
+
+	return count;
+}
+
+// --- Convenience draw methods ---
+
+int ofxHelios::draw(colourPolyline& line) {
+	std::vector<colourPolyline> lines;
+	lines.push_back(line);
+	return draw(lines);
+}
+
+int ofxHelios::draw(ofPolyline& line, ofColor colour) {
+	colourPolyline col(line, colour);
+	return draw(col);
+}
+
+int ofxHelios::draw(std::vector<ofPolyline>& lines, ofColor colour) {
+	std::vector<colourPolyline> output;
+	output.reserve(lines.size());
+	for (auto& line : lines) {
+		output.emplace_back(line, colour);
+	}
+	return draw(output);
+}
+
+int ofxHelios::draw(std::vector<colourPolyline>& lines) {
+	if (!connected) return -1;
+
+	ofxHeliosFrame::BuildParams params;
+	params.subdivide = subdivide_;
+	params.blankCount = blankCount_;
+	params.maxAngle = maxAngle_;
+	params.intensity = intensity_;
+	params.outputCentre = outputCentre_;
+	params.screenWidth = ofGetWidth();
+	params.screenHeight = ofGetHeight();
+	params.maxPoints = getMaxPoints();
+
+	auto points = ofxHeliosFrame::buildFrame(lines, params, buildState);
+	return sendFrame(points);
+}
+
+// --- Parameters ---
+
+void ofxHelios::setPps(int pps) {
+	pps_ = std::clamp(pps, (int)HELIOS_MIN_PPS, getMaxPps());
+}
+
+int ofxHelios::getPps() const {
+	return pps_;
+}
+
+void ofxHelios::setIntensity(float intensity) {
+	intensity_ = std::clamp(intensity, 0.0f, 1.0f);
+}
+
+float ofxHelios::getIntensity() const {
+	return intensity_;
+}
+
+void ofxHelios::setSubdivide(int n) {
+	subdivide_ = std::max(1, n);
+}
+
+int ofxHelios::getSubdivide() const {
+	return subdivide_;
+}
+
+void ofxHelios::setBlankCount(int n) {
+	blankCount_ = std::max(0, n);
+}
+
+int ofxHelios::getBlankCount() const {
+	return blankCount_;
+}
+
+void ofxHelios::setMaxAngle(float degrees) {
+	maxAngle_ = std::max(0.0f, degrees);
+}
+
+float ofxHelios::getMaxAngle() const {
+	return maxAngle_;
+}
+
+void ofxHelios::setOutputCentre(glm::vec2 c) {
+	outputCentre_ = c;
+}
+
+glm::vec2 ofxHelios::getOutputCentre() const {
+	return outputCentre_;
+}
+
+// --- Device queries ---
+
+int ofxHelios::getNumDevices() const {
+	return numDevices;
+}
+
+bool ofxHelios::isDeviceUsb() {
+	if (!connected) return false;
+	return dac.GetIsUsb(deviceIndex) == 1;
+}
+
+bool ofxHelios::isDeviceHighRes() {
+	if (!connected) return false;
+	return dac.GetSupportsHigherResolutions(deviceIndex) == 1;
+}
+
+std::string ofxHelios::getDeviceName() {
+	if (!connected) return "";
+	char name[32] = {0};
+	dac.GetName(deviceIndex, name);
+	return std::string(name);
+}
+
+int ofxHelios::getFirmwareVersion() {
+	if (!connected) return -1;
+	return dac.GetFirmwareVersion(deviceIndex);
+}
+
+int ofxHelios::getMaxPoints() {
+	if (!connected) return HELIOS_MAX_POINTS;
+	return isDeviceUsb() ? HELIOS_MAX_POINTS : HELIOS_MAX_POINTS_IDN;
+}
+
+int ofxHelios::getMaxPps() {
+	if (!connected) return HELIOS_MAX_PPS;
+	return isDeviceUsb() ? HELIOS_MAX_PPS : HELIOS_MAX_PPS_IDN;
+}
+
+int ofxHelios::getLastPointCount() const {
+	return lastPointCount_;
+}
+
+// --- Background thread ---
+
+void ofxHelios::threadedFunction() {
+	using namespace std::chrono;
+
+	while (isThreadRunning()) {
+		// Wait for a new frame or periodic wakeup
+		{
+			std::unique_lock<std::mutex> lock(bufferMutex);
+			frameCondition.wait_for(lock, milliseconds(50), [this] {
+				return newFrameAvailable.load() || !isThreadRunning();
+			});
+
+			if (!isThreadRunning()) break;
+
+			if (newFrameAvailable) {
+				std::swap(frontBuffer, backBuffer);
+				newFrameAvailable = false;
+			}
+		}
+
+		if (frontBuffer.empty()) continue;
+
+		// Poll GetStatus with timeout
+		auto deadline = steady_clock::now() + milliseconds(100);
+		bool ready = false;
+		while (steady_clock::now() < deadline && isThreadRunning()) {
+			int status = dac.GetStatus(deviceIndex);
+			if (status == 1) {
+				ready = true;
+				break;
+			}
+			if (status < 0) {
+				ofLogError("ofxHelios") << "GetStatus error: " << status;
+				break;
+			}
+			std::this_thread::sleep_for(milliseconds(1));
+		}
+
+		if (!ready || !isThreadRunning()) continue;
+
+		int numPoints = std::min((int)frontBuffer.size(), getMaxPoints());
+		int err = dac.WriteFrameHighResolution(
+			deviceIndex,
+			pps_.load(),
+			HELIOS_FLAGS_DEFAULT,
+			frontBuffer.data(),
+			numPoints);
+
+		if (err < 0) {
+			ofLogError("ofxHelios") << "WriteFrameHighResolution error: " << err;
+		} else {
+			lastPointCount_ = numPoints;
+		}
+	}
+}

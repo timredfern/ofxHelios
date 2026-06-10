@@ -1,132 +1,97 @@
 //
 //  ofxHelios.h
-// 
 //
 //  Created by Tim Redfern Nov 2017
-// 
-// it would be good if ofxHelios could inherit the current transform   
-// it would good if it could be resoution independent
-//                      
+//  Rewritten 2026 - v0.2.0
+//
 
-#ifndef ofxHelios_h
-#define ofxHelios_h
-#define OFXHELIOS_VERSION "0.1.2"
-#define OFXHELIOS_NODEVICE -1
+#pragma once
+
+#define OFXHELIOS_VERSION "0.2.0"
+
 #include "ofMain.h"
 #include "colourPolyline.h"
-
-#define SUBDIVIDE 15
-#define BLANK_NUM 8
-#define MAX_ANGLE 15.0f
-
+#include "ofxHeliosFrame.h"
 #include <HeliosDac.h>
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
 
 class ofxHelios : public ofThread
 {
 public:
-    
-    ofxHelios(int _pps=20000,int _device = 0,int subdivide=SUBDIVIDE,int blank_num=BLANK_NUM,int max_angle=MAX_ANGLE)
-    {
-        int numdevices=dac.OpenDevices();
-        for (int i=0;i<numdevices;i++){
-            ofLogNotice() << "ofxHelios v "<<OFXHELIOS_VERSION<<": found laser DAC: firmware v "<<dac.GetFirmwareVersion(i);
-        }
-        if (!numdevices){
-            ofLogNotice() << "ofxHelios v "<<OFXHELIOS_VERSION<<": no devices found";
 
-        }
-        if (_device>=numdevices){
-            ofLogNotice() << "ofxHelios v "<<OFXHELIOS_VERSION<<": could not open device "<<_device;
-            device=OFXHELIOS_NODEVICE;
-        }
-        else {
-            device=_device;
-            pps=_pps;
-            //dac.SetShutter(device,true);
-        }
-        output_centre=ofPoint(0x7ff,0x7ff);
-        prev_point=output_centre;
+	ofxHelios();
+	~ofxHelios();
 
-        subdivide=SUBDIVIDE;
-        blank_num=BLANK_NUM;
-        max_angle=MAX_ANGLE;
+	// Device lifecycle. Returns number of devices found, or negative on error.
+	int setup(int deviceIndex = 0);
+	int setupUsb(int deviceIndex = 0);
+	int setupNetwork(int deviceIndex = 0);
+	void close();
+	bool isConnected() const;
 
-        //startThread();
-    }
-    
-    ~ofxHelios()
-    {
-        //stopThread();
-        dac.CloseDevices();
-    }
+	// Raw frame submission. Non-blocking: swaps points into back-buffer
+	// for the background thread to send. Returns point count or -1 on error.
+	int sendFrame(std::vector<HeliosPointHighRes>& points);
 
-    void set_centre(ofPoint c){
-        ofPoint cp=c+ofPoint(0x7ff,0x7ff);
-        if (cp!=output_centre){
-            output_centre=cp;
-            ofLogNotice() << "ofxHelios v "<<OFXHELIOS_VERSION<<": set output centre to "<<output_centre.x<<","<<output_centre.y;
-        }
-    }
-    void set_pts(int n){
-        if (n!=pps){
-            pps=n;
-            ofLogNotice() << "ofxHelios v "<<OFXHELIOS_VERSION<<": set point output to "<<pps;
-        }
-    }
-    void set_intensity(int i){
-        if (i!=laserintensity){
-            laserintensity=i;
-            ofLogNotice() << "ofxHelios v "<<OFXHELIOS_VERSION<<": set intensity to "<<laserintensity;
-        }
-    }
-    void set_subdivide(int i){
-        if (i!=subdivide){
-            subdivide=i;
-            ofLogNotice() << "ofxHelios v "<<OFXHELIOS_VERSION<<": set subdivide to "<<subdivide;
-        }
-    }
-    void set_blanknum(int i){
-        if (i!=blank_num){
-            blank_num=i;
-            ofLogNotice() << "ofxHelios v "<<OFXHELIOS_VERSION<<": set blank_num to "<<blank_num;
-        }
-    }
-    void set_maxangle(float f){
-        if (f!=max_angle){
-            max_angle=f;
-            ofLogNotice() << "ofxHelios v "<<OFXHELIOS_VERSION<<": set max_angle to "<<max_angle;
-        }
-    }
-    int get_pts(){
-        return pps;
-    }
-    int draw(colourPolyline &line, int intensity=255);
-    int draw(ofPolyline &line,ofColor colour=ofColor(255,255,255),int intensity=255);
-    int draw(vector <ofPolyline> &lines,ofColor colour=ofColor(255,255,255),int intensity=255);
-    int draw(vector <colourPolyline> &lines, int intensity=255);
+	// Convenience: build frame from polylines and submit.
+	int draw(colourPolyline& line);
+	int draw(ofPolyline& line, ofColor colour = ofColor(255, 255, 255));
+	int draw(std::vector<colourPolyline>& lines);
+	int draw(std::vector<ofPolyline>& lines, ofColor colour = ofColor(255, 255, 255));
 
-    
+	// Parameters
+	void setPps(int pps);
+	int getPps() const;
+	void setIntensity(float intensity);  // 0.0 - 1.0
+	float getIntensity() const;
+	void setSubdivide(int n);
+	int getSubdivide() const;
+	void setBlankCount(int n);
+	int getBlankCount() const;
+	void setMaxAngle(float degrees);
+	float getMaxAngle() const;
+	void setOutputCentre(glm::vec2 c);
+	glm::vec2 getOutputCentre() const;
 
-    //isReady()
-    
-    private:
+	// Device queries
+	int getNumDevices() const;
+	bool isDeviceUsb();
+	bool isDeviceHighRes();
+	std::string getDeviceName();
+	int getFirmwareVersion();
+	int getMaxPoints();
+	int getMaxPps();
+	int getLastPointCount() const;
 
-        void threadedFunction();
+private:
 
-        int device;
-        HeliosDac dac;
-        int pps;
-        int laserintensity;
+	void threadedFunction() override;
+	int openDevices(int mode, int deviceIndex);
 
-        int subdivide,blank_num;
-        float max_angle;
+	HeliosDac dac;
+	int deviceIndex = -1;
+	int numDevices = 0;
+	std::atomic<bool> connected{false};
 
-        ofPoint output_centre;
-        ofPoint prev_point;
-        ofColor prev_colour;
+	// Double buffer for thread communication
+	std::vector<HeliosPointHighRes> frontBuffer;
+	std::vector<HeliosPointHighRes> backBuffer;
+	std::mutex bufferMutex;
+	std::condition_variable frameCondition;
+	std::atomic<bool> newFrameAvailable{false};
 
-        vector <HeliosPoint> points;
-    
+	// Parameters (pps is atomic - read by background thread)
+	std::atomic<int> pps_{30000};
+	float intensity_ = 1.0f;
+	int subdivide_ = 15;
+	int blankCount_ = 8;
+	float maxAngle_ = 15.0f;
+	glm::vec2 outputCentre_{0, 0};
+
+	// Frame building state (main thread only)
+	ofxHeliosFrame::BuildState buildState;
+
+	std::atomic<int> lastPointCount_{0};
 };
-
-#endif

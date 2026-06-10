@@ -11,9 +11,10 @@ vector <ofDefaultVertexType> colourPolyline::getTransformedVerts(ofMatrix4x4 xfo
 }
 
 void colourPolyline::transform(ofMatrix4x4 xform){
-	auto temp=getTransformedVerts(xform);
-    clear();
-    addVertices(temp);
+	auto& verts = getVertices();
+	for (auto& v : verts) {
+		v = glm::vec3(ofVec3f(v) * xform);
+	}
 }
 
 colourPolyline colourPolyline::getTransformed(ofMatrix4x4 xform) const{
