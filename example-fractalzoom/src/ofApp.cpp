@@ -16,9 +16,6 @@ static const int NUM_LEVELS = 10;
 static const int SIDES = 5;
 static const float BASE_RADIUS = 450.0f;
 
-static float LASER_PPS = 30000;
-static float LASER_INTENSITY = 0.15f;
-
 colourPolyline makePentagon(float radius, float rotation, ofColor colour) {
 	colourPolyline poly;
 	float step = TWO_PI / SIDES;
@@ -34,10 +31,15 @@ colourPolyline makePentagon(float radius, float rotation, ofColor colour) {
 
 void ofApp::setup() {
 	laser.setup();
-	laser.setPps(LASER_PPS);
-	laser.setIntensity(LASER_INTENSITY);
-	laser.setSubdivide(12);
-	laser.setBlankCount(6);
+	laser.setPps(40000);
+	laser.setIntensity(0.5f);
+	laser.setSubdivide(24);
+	laser.setBlankCount(12);
+	laserGui.setup(laser);
+}
+
+void ofApp::update() {
+	laserGui.update();
 }
 
 void ofApp::draw() {
@@ -92,10 +94,11 @@ void ofApp::draw() {
 		lines.push_back(pent);
 	}
 
-	int num = laser.draw(lines);
+	int num = laserGui.draw(lines);
 
 	ofSetColor(255);
 	ofDrawBitmapString(
-		ofToString(ofGetFrameRate(), 1) + " fps  points: " + ofToString(num),
+		ofToString(laserGui.getLaserFps(), 1) + " laser fps  points: " + ofToString(num),
 		20, 20);
+	laserGui.drawGui();
 }

@@ -7,6 +7,8 @@
 class ofxHeliosGui : public ofxPanel {
 public:
 
+	using ofxPanel::draw;
+
 	void setup(ofxHelios& laser, int x = 10, int y = 10);
 	void update();
 	void drawGui();
@@ -18,15 +20,17 @@ public:
 
 	bool isPowered() const;
 	int getLastPointCount() const;
+	float getLaserFps() const;
 
 private:
 
-	ofxHelios* laser_ = nullptr;
+	ofxHelios *laser_ = nullptr;  // set by setup()
 	ofParameter<bool> power_{"power", true};
 	ofParameter<float> intensity_{"intensity", 0.12f, 0.0f, 1.0f};
-	ofParameter<int> points_{"points", 30000, 7, 100000};
+	ofParameter<int> pps_{"pps", 30000, 7, 100000};
 	ofParameter<int> subdivide_{"subdivide", 15, 1, 100};
 	ofParameter<int> blankCount_{"blank points", 8, 0, 32};
 	ofParameter<float> maxAngle_{"max angle", 15.0f, 1.0f, 90.0f};
+	ofParameter<float> outputScale_{"output scale", 1.0f, 0.05f, 1.0f};
 	int lastPointCount_ = 0;
 };

@@ -12,8 +12,8 @@
 
 */
 
-int MAX_POINTS=20000;
-float LASER_INTENSITY=37.0f/255.0f;
+int MAX_POINTS=30000;
+float LASER_INTENSITY=0.5f;
 
 
 //--------------------------------------------------------------

@@ -58,7 +58,7 @@ std::vector<HeliosPointHighRes> buildFrame(
 	std::vector<HeliosPointHighRes> points;
 	points.reserve(params.maxPoints);
 
-	float scale = 65535.0f / std::max(params.screenWidth, params.screenHeight);
+	float scale = (65535.0f / std::max(params.screenWidth, params.screenHeight)) * params.outputScale;
 
 	// Initialise prev_point to screen centre on first call
 	if (!state.initialised) {
@@ -117,16 +117,18 @@ std::vector<HeliosPointHighRes> buildFrame(
 				if ((int)points.size() >= params.maxPoints) goto done;
 			}
 
-			// Dwell points at corners or end of polyline
-			float angle = line.getDegreesAtIndex(i);
-			if (angle > params.maxAngle || i == (int)line.size() - 2) {
-				int dwellCount = (int)((angle / 180.0f) * params.blankCount);
-				for (int l = 0; l < dwellCount; l++) {
-					points.push_back(screenToLaser(
-						p2, scale, params.outputCentre,
-						params.screenWidth, params.screenHeight,
-						c2, params.intensity));
-					if ((int)points.size() >= params.maxPoints) goto done;
+			// Dwell points at sharp corners (skip last vertex - trailing dwell handles it)
+			if (i + 1 < (int)line.size() - 1) {
+				float angle = line.getDegreesAtIndex(i + 1);
+				if (angle > params.maxAngle) {
+					int dwellCount = (int)((angle / 180.0f) * params.blankCount);
+					for (int l = 0; l < dwellCount; l++) {
+						points.push_back(screenToLaser(
+							p2, scale, params.outputCentre,
+							params.screenWidth, params.screenHeight,
+							c2, params.intensity));
+						if ((int)points.size() >= params.maxPoints) goto done;
+					}
 				}
 			}
 

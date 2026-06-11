@@ -13,6 +13,7 @@ namespace ofxHeliosFrame {
 		float maxAngle = 15.0f;    // degrees; corners sharper than this get dwell points
 		float intensity = 1.0f;    // 0.0-1.0 global multiplier, baked into RGB
 		glm::vec2 outputCentre{0, 0};  // screen-space offset from centre
+		float outputScale = 1.0f;      // 0.0-1.0 multiplier on output size
 		int screenWidth = 1024;
 		int screenHeight = 768;
 		int maxPoints = HELIOS_MAX_POINTS;

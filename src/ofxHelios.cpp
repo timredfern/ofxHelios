@@ -142,6 +142,7 @@ int ofxHelios::draw(std::vector<colourPolyline>& lines) {
 	params.maxAngle = maxAngle_;
 	params.intensity = intensity_;
 	params.outputCentre = outputCentre_;
+	params.outputScale = outputScale_;
 	params.screenWidth = ofGetWidth();
 	params.screenHeight = ofGetHeight();
 	params.maxPoints = getMaxPoints();
@@ -200,6 +201,14 @@ glm::vec2 ofxHelios::getOutputCentre() const {
 	return outputCentre_;
 }
 
+void ofxHelios::setOutputScale(float s) {
+	outputScale_ = std::clamp(s, 0.0f, 1.0f);
+}
+
+float ofxHelios::getOutputScale() const {
+	return outputScale_;
+}
+
 // --- Device queries ---
 
 int ofxHelios::getNumDevices() const {
@@ -242,10 +251,16 @@ int ofxHelios::getLastPointCount() const {
 	return lastPointCount_;
 }
 
+float ofxHelios::getLaserFps() const {
+	return measuredFps_.load();
+}
+
 // --- Background thread ---
 
 void ofxHelios::threadedFunction() {
 	using namespace std::chrono;
+	steady_clock::time_point lastWriteTime;
+	bool hasLastWrite = false;
 
 	while (isThreadRunning()) {
 		// Wait for a new frame or periodic wakeup
@@ -295,6 +310,15 @@ void ofxHelios::threadedFunction() {
 			ofLogError("ofxHelios") << "WriteFrameHighResolution error: " << err;
 		} else {
 			lastPointCount_ = numPoints;
+			auto now = steady_clock::now();
+			if (hasLastWrite) {
+				float dt = duration<float>(now - lastWriteTime).count();
+				if (dt > 0.0f) {
+					measuredFps_ = 1.0f / dt;
+				}
+			}
+			lastWriteTime = now;
+			hasLastWrite = true;
 		}
 	}
 }

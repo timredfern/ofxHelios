@@ -54,6 +54,8 @@ public:
 	float getMaxAngle() const;
 	void setOutputCentre(glm::vec2 c);
 	glm::vec2 getOutputCentre() const;
+	void setOutputScale(float s);
+	float getOutputScale() const;
 
 	// Device queries
 	int getNumDevices() const;
@@ -64,6 +66,7 @@ public:
 	int getMaxPoints();
 	int getMaxPps();
 	int getLastPointCount() const;
+	float getLaserFps() const;
 
 private:
 
@@ -89,9 +92,11 @@ private:
 	int blankCount_ = 8;
 	float maxAngle_ = 15.0f;
 	glm::vec2 outputCentre_{0, 0};
+	float outputScale_ = 1.0f;
 
 	// Frame building state (main thread only)
 	ofxHeliosFrame::BuildState buildState;
 
 	std::atomic<int> lastPointCount_{0};
+	std::atomic<float> measuredFps_{0.0f};
 };

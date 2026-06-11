@@ -7,9 +7,9 @@
     colourPolyline can be drawn to the screen or by ofxHelios
 
 */
-int MAX_POINTS=40000;
+int MAX_POINTS=30000;
 int NUM_POINTS=128;
-float LASER_INTENSITY=37.0f/255.0f;
+float LASER_INTENSITY=0.5f;
 int CIRCLE_RADIUS=256;
 
 //--------------------------------------------------------------
@@ -56,7 +56,7 @@ void testApp::draw(){
     int num = laser.draw(lines);
 
     if (num>0){
-        ofSetWindowTitle(ofToString(ofGetFrameRate(), 2)+" fps laser points: "+ofToString(num));
+        ofSetWindowTitle(ofToString(laser.getLaserFps(), 1) + " laser fps  points: " + ofToString(num));
     }
     else {
         ofSetWindowTitle("laser error ");
