@@ -99,13 +99,15 @@ void ofApp::draw() {
 
 	int num = laser.draw(lines);
 
-
-
 	ofSetColor(255);
-	ofDrawBitmapString(
-		ofToString(laserGui.getLaserFps(), 1) + " laser fps  points: " + ofToString(num),
-		20, 20);
-
+	
 	laserGui.draw();
+
+	if (num>0){
+        ofSetWindowTitle(ofToString(laser.getLaserFps(), 1) + " laser fps  points: " + ofToString(num));
+    }
+    else {
+        ofSetWindowTitle("laser error ");
+    }
 
 }
