@@ -97,7 +97,6 @@ android/armeabi:
 android/armeabi-v7a:
 
 osx:
-	ADDON_LIBS = ../../../libs/libusb/lib/macos/libusb.xcframework/macos-arm64_x86_64/libusb.a
 	ADDON_SOURCES_EXCLUDE = libs/libheliosdac/src/idn/plt-windows.cpp
 
 ios:
