@@ -7,19 +7,10 @@
 class ofxHeliosGui : public ofxPanel {
 public:
 
-	using ofxPanel::draw;
-
 	void setup(ofxHelios& laser, int x = 10, int y = 10);
 	void update();
-	void drawGui();
-
-	int draw(colourPolyline& line);
-	int draw(ofPolyline& line, ofColor colour = ofColor(255, 255, 255));
-	int draw(std::vector<colourPolyline>& lines);
-	int draw(std::vector<ofPolyline>& lines, ofColor colour = ofColor(255, 255, 255));
 
 	bool isPowered() const;
-	int getLastPointCount() const;
 	float getLaserFps() const;
 
 private:
@@ -32,5 +23,4 @@ private:
 	ofParameter<int> blankCount_{"blank points", 8, 0, 32};
 	ofParameter<float> maxAngle_{"max angle", 15.0f, 1.0f, 90.0f};
 	ofParameter<float> outputScale_{"output scale", 1.0f, 0.05f, 1.0f};
-	int lastPointCount_ = 0;
 };

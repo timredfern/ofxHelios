@@ -22,41 +22,8 @@ void ofxHeliosGui::update() {
 	laser_->setOutputScale(outputScale_);
 }
 
-void ofxHeliosGui::drawGui() {
-	ofxPanel::draw();
-}
-
-
-int ofxHeliosGui::draw(colourPolyline& line) {
-	if (!power_) { lastPointCount_ = 0; return 0; }
-	lastPointCount_ = laser_->draw(line);
-	return lastPointCount_;
-}
-
-int ofxHeliosGui::draw(ofPolyline& line, ofColor colour) {
-	if (!power_) { lastPointCount_ = 0; return 0; }
-	lastPointCount_ = laser_->draw(line, colour);
-	return lastPointCount_;
-}
-
-int ofxHeliosGui::draw(std::vector<colourPolyline>& lines) {
-	if (!power_) { lastPointCount_ = 0; return 0; }
-	lastPointCount_ = laser_->draw(lines);
-	return lastPointCount_;
-}
-
-int ofxHeliosGui::draw(std::vector<ofPolyline>& lines, ofColor colour) {
-	if (!power_) { lastPointCount_ = 0; return 0; }
-	lastPointCount_ = laser_->draw(lines, colour);
-	return lastPointCount_;
-}
-
 bool ofxHeliosGui::isPowered() const {
 	return power_;
-}
-
-int ofxHeliosGui::getLastPointCount() const {
-	return lastPointCount_;
 }
 
 float ofxHeliosGui::getLaserFps() const {

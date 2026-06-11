@@ -45,6 +45,9 @@ void ofApp::update() {
 void ofApp::draw() {
 	ofBackground(0);
 
+
+
+
 	float cx = ofGetWidth() / 2.0f;
 	float cy = ofGetHeight() / 2.0f;
 
@@ -94,11 +97,15 @@ void ofApp::draw() {
 		lines.push_back(pent);
 	}
 
-	int num = laserGui.draw(lines);
+	int num = laser.draw(lines);
+
+
 
 	ofSetColor(255);
 	ofDrawBitmapString(
 		ofToString(laserGui.getLaserFps(), 1) + " laser fps  points: " + ofToString(num),
 		20, 20);
-	laserGui.drawGui();
+
+	laserGui.draw();
+
 }
