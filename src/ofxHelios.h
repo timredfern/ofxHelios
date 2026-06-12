@@ -62,6 +62,7 @@ public:
 	bool isDeviceUsb();
 	bool isDeviceHighRes();
 	std::string getDeviceName();
+	std::string getDeviceName(int index);
 	int getFirmwareVersion();
 	int getMaxPoints();
 	int getMaxPps();

@@ -232,6 +232,13 @@ std::string ofxHelios::getDeviceName() {
 	return std::string(name);
 }
 
+std::string ofxHelios::getDeviceName(int index) {
+	if (index < 0 || index >= numDevices) return "";
+	char name[32] = {0};
+	dac.GetName(index, name);
+	return std::string(name);
+}
+
 int ofxHelios::getFirmwareVersion() {
 	if (!connected) return -1;
 	return dac.GetFirmwareVersion(deviceIndex);
