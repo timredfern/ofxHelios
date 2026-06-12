@@ -23,6 +23,71 @@ ofxHelios::~ofxHelios() {
 	}
 }
 
+// --- Scan only (no connect) ---
+
+int ofxHelios::scanDevices(int mode) {
+	close();
+
+	int count = 0;
+	switch (mode) {
+		case 1:  count = dac.OpenDevicesOnlyUsb(); break;
+		case 2:  count = dac.OpenDevicesOnlyNetwork(); break;
+		default: count = dac.OpenDevices(); break;
+	}
+
+	numDevices = count;
+	deviceNames_.clear();
+	deviceNames_.reserve(count);
+
+	for (int i = 0; i < count; i++) {
+		char name[32] = {0};
+		dac.GetName(i, name);
+		deviceNames_.emplace_back(name);
+		ofLogNotice("ofxHelios") << "v" << OFXHELIOS_VERSION
+			<< " found DAC " << i << ": " << name
+			<< " (firmware v" << dac.GetFirmwareVersion(i)
+			<< ", " << (dac.GetIsUsb(i) ? "USB" : "network") << ")";
+	}
+
+	if (count == 0) {
+		ofLogNotice("ofxHelios") << "v" << OFXHELIOS_VERSION << " no devices found";
+	}
+
+	return count;
+}
+
+int ofxHelios::scan() { return scanDevices(0); }
+int ofxHelios::scanUsb() { return scanDevices(1); }
+int ofxHelios::scanNetwork() { return scanDevices(2); }
+
+bool ofxHelios::connect(int devIdx) {
+	if (numDevices == 0) {
+		ofLogError("ofxHelios") << "no devices scanned, call scan() first";
+		return false;
+	}
+	if (devIdx < 0 || devIdx >= numDevices) {
+		ofLogError("ofxHelios") << "device index " << devIdx
+			<< " out of range (found " << numDevices << " devices)";
+		return false;
+	}
+
+	if (isThreadRunning()) {
+		stopThread();
+		frameCondition.notify_all();
+		waitForThread(true, 2000);
+	}
+
+	deviceIndex = devIdx;
+	connected = true;
+	startThread();
+
+	ofLogNotice("ofxHelios") << "connected to device " << deviceIndex
+		<< ": " << deviceNames_[deviceIndex];
+	return true;
+}
+
+// --- Scan + connect (convenience) ---
+
 // mode: 0 = all, 1 = USB only, 2 = network only
 int ofxHelios::openDevices(int mode, int devIdx) {
 	int count = 0;
@@ -33,10 +98,13 @@ int ofxHelios::openDevices(int mode, int devIdx) {
 	}
 
 	numDevices = count;
+	deviceNames_.clear();
+	deviceNames_.reserve(count);
 
 	for (int i = 0; i < count; i++) {
 		char name[32] = {0};
 		dac.GetName(i, name);
+		deviceNames_.emplace_back(name);
 		ofLogNotice("ofxHelios") << "v" << OFXHELIOS_VERSION
 			<< " found DAC " << i << ": " << name
 			<< " (firmware v" << dac.GetFirmwareVersion(i)
@@ -58,7 +126,8 @@ int ofxHelios::openDevices(int mode, int devIdx) {
 	connected = true;
 	startThread();
 
-	ofLogNotice("ofxHelios") << "connected to device " << deviceIndex;
+	ofLogNotice("ofxHelios") << "connected to device " << deviceIndex
+		<< ": " << deviceNames_[deviceIndex];
 	return count;
 }
 
@@ -86,6 +155,7 @@ void ofxHelios::close() {
 		connected = false;
 		deviceIndex = -1;
 		numDevices = 0;
+		deviceNames_.clear();
 	}
 }
 
@@ -226,17 +296,13 @@ bool ofxHelios::isDeviceHighRes() {
 }
 
 std::string ofxHelios::getDeviceName() {
-	if (!connected) return "";
-	char name[32] = {0};
-	dac.GetName(deviceIndex, name);
-	return std::string(name);
+	if (!connected || deviceIndex < 0 || deviceIndex >= (int)deviceNames_.size()) return "";
+	return deviceNames_[deviceIndex];
 }
 
 std::string ofxHelios::getDeviceName(int index) {
-	if (index < 0 || index >= numDevices) return "";
-	char name[32] = {0};
-	dac.GetName(index, name);
-	return std::string(name);
+	if (index < 0 || index >= (int)deviceNames_.size()) return "";
+	return deviceNames_[index];
 }
 
 int ofxHelios::getFirmwareVersion() {

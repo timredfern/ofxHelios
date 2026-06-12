@@ -24,8 +24,13 @@ public:
 	ofxHelios();
 	~ofxHelios();
 
-	// Device lifecycle. Returns number of devices found, or negative on error.
-	int setup(int deviceIndex = 0);
+	// Device lifecycle.
+	int scan();           // scan all, return device count
+	int scanUsb();        // scan USB only
+	int scanNetwork();    // scan network only
+	bool connect(int deviceIndex = 0);  // connect to a scanned device
+
+	int setup(int deviceIndex = 0);     // scan + connect (convenience)
 	int setupUsb(int deviceIndex = 0);
 	int setupNetwork(int deviceIndex = 0);
 	void close();
@@ -72,12 +77,14 @@ public:
 private:
 
 	void threadedFunction() override;
+	int scanDevices(int mode);
 	int openDevices(int mode, int deviceIndex);
 
 	HeliosDac dac;
 	int deviceIndex = -1;
 	int numDevices = 0;
 	std::atomic<bool> connected{false};
+	std::vector<std::string> deviceNames_;
 
 	// Double buffer for thread communication
 	std::vector<HeliosPointHighRes> frontBuffer;
