@@ -8,6 +8,7 @@
 #include "ofxHelios.h"
 #include <algorithm>
 #include <chrono>
+#include <iomanip>
 
 ofxHelios::ofxHelios() {}
 
@@ -216,8 +217,19 @@ int ofxHelios::draw(std::vector<colourPolyline>& lines) {
 	params.screenWidth = ofGetWidth();
 	params.screenHeight = ofGetHeight();
 	params.maxPoints = getMaxPoints();
+	params.gammaR = gammaR_;
+	params.gammaG = gammaG_;
+	params.gammaB = gammaB_;
+	params.blankTransition = blankTransition_;
 
 	auto points = ofxHeliosFrame::buildFrame(lines, params, buildState);
+
+	if (captureFrame_) {
+		capturedFrame_ = points;
+		frameCaptured_ = true;
+		captureFrame_ = false;
+	}
+
 	return sendFrame(points);
 }
 
@@ -279,6 +291,38 @@ float ofxHelios::getOutputScale() const {
 	return outputScale_;
 }
 
+void ofxHelios::setGammaR(float g) {
+	gammaR_ = std::max(0.1f, g);
+}
+
+float ofxHelios::getGammaR() const {
+	return gammaR_;
+}
+
+void ofxHelios::setGammaG(float g) {
+	gammaG_ = std::max(0.1f, g);
+}
+
+float ofxHelios::getGammaG() const {
+	return gammaG_;
+}
+
+void ofxHelios::setGammaB(float g) {
+	gammaB_ = std::max(0.1f, g);
+}
+
+float ofxHelios::getGammaB() const {
+	return gammaB_;
+}
+
+void ofxHelios::setBlankTransition(float t) {
+	blankTransition_ = std::clamp(t, 0.0f, 1.0f);
+}
+
+float ofxHelios::getBlankTransition() const {
+	return blankTransition_;
+}
+
 // --- Device queries ---
 
 int ofxHelios::getNumDevices() const {
@@ -333,7 +377,9 @@ float ofxHelios::getLaserFps() const {
 void ofxHelios::threadedFunction() {
 	using namespace std::chrono;
 	steady_clock::time_point lastWriteTime;
+	steady_clock::time_point threadStartTime = steady_clock::now();
 	bool hasLastWrite = false;
+	lastError_ = 0;
 
 	while (isThreadRunning()) {
 		// Wait for a new frame or periodic wakeup
@@ -363,7 +409,11 @@ void ofxHelios::threadedFunction() {
 				break;
 			}
 			if (status < 0) {
-				ofLogError("ofxHelios") << "GetStatus error: " << status;
+				if (lastError_ != status) {
+					float secs = duration<float>(steady_clock::now() - threadStartTime).count();
+					ofLogError("ofxHelios") << "[" << std::fixed << std::setprecision(1) << secs << "s] GetStatus error: " << status;
+					lastError_ = status;
+				}
 				break;
 			}
 			std::this_thread::sleep_for(milliseconds(1));
@@ -380,8 +430,13 @@ void ofxHelios::threadedFunction() {
 			numPoints);
 
 		if (err < 0) {
-			ofLogError("ofxHelios") << "WriteFrameHighResolution error: " << err;
+			if (lastError_ != err) {
+				float secs = duration<float>(steady_clock::now() - threadStartTime).count();
+				ofLogError("ofxHelios") << "[" << std::fixed << std::setprecision(1) << secs << "s] WriteFrame error: " << err;
+				lastError_ = err;
+			}
 		} else {
+			lastError_ = 0;
 			lastPointCount_ = numPoints;
 			auto now = steady_clock::now();
 			if (hasLastWrite) {

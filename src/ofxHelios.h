@@ -61,6 +61,14 @@ public:
 	glm::vec2 getOutputCentre() const;
 	void setOutputScale(float s);
 	float getOutputScale() const;
+	void setGammaR(float g);
+	float getGammaR() const;
+	void setGammaG(float g);
+	float getGammaG() const;
+	void setGammaB(float g);
+	float getGammaB() const;
+	void setBlankTransition(float t);
+	float getBlankTransition() const;
 
 	// Device queries
 	int getNumDevices() const;
@@ -73,6 +81,12 @@ public:
 	int getMaxPps();
 	int getLastPointCount() const;
 	float getLaserFps() const;
+
+	// Debug: capture the next built frame for inspection
+	void captureNextFrame() { captureFrame_ = true; }
+	bool hasCapturedFrame() const { return frameCaptured_; }
+	const std::vector<HeliosPointHighRes>& getCapturedFrame() const { return capturedFrame_; }
+	void clearCapturedFrame() { frameCaptured_ = false; }
 
 private:
 
@@ -101,10 +115,20 @@ private:
 	float maxAngle_ = 15.0f;
 	glm::vec2 outputCentre_{0, 0};
 	float outputScale_ = 1.0f;
+	float gammaR_ = 1.0f;
+	float gammaG_ = 1.0f;
+	float gammaB_ = 1.0f;
+	float blankTransition_ = 0.5f;
 
 	// Frame building state (main thread only)
 	ofxHeliosFrame::BuildState buildState;
 
 	std::atomic<int> lastPointCount_{0};
 	std::atomic<float> measuredFps_{0.0f};
+	int lastError_ = 0;  // dedup repeated error logging
+
+	// Debug frame capture
+	bool captureFrame_ = false;
+	std::vector<HeliosPointHighRes> capturedFrame_;
+	bool frameCaptured_ = false;
 };

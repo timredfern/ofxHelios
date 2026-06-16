@@ -17,7 +17,10 @@ HeliosPointHighRes screenToLaser(
 	int screenWidth,
 	int screenHeight,
 	const ofColor& colour,
-	float intensity)
+	float intensity,
+	float gammaR,
+	float gammaG,
+	float gammaB)
 {
 	float cx = (screenPoint.x - screenWidth * 0.5f + centreOffset.x) * scale + 0x7FFF;
 	float cy = (screenPoint.y - screenHeight * 0.5f + centreOffset.y) * scale + 0x7FFF;
@@ -25,9 +28,9 @@ HeliosPointHighRes screenToLaser(
 	HeliosPointHighRes p;
 	p.x = clamp16(cx);
 	p.y = clamp16(cy);
-	p.r = clamp16(colour.r / 255.0f * intensity * 65535.0f);
-	p.g = clamp16(colour.g / 255.0f * intensity * 65535.0f);
-	p.b = clamp16(colour.b / 255.0f * intensity * 65535.0f);
+	p.r = clamp16(std::pow(colour.r / 255.0f, gammaR) * intensity * 65535.0f);
+	p.g = clamp16(std::pow(colour.g / 255.0f, gammaG) * intensity * 65535.0f);
+	p.b = clamp16(std::pow(colour.b / 255.0f, gammaB) * intensity * 65535.0f);
 	return p;
 }
 
@@ -113,7 +116,8 @@ std::vector<HeliosPointHighRes> buildFrame(
 				points.push_back(screenToLaser(
 					interpPt, scale, params.outputCentre,
 					params.screenWidth, params.screenHeight,
-					interpCol, params.intensity));
+					interpCol, params.intensity,
+					params.gammaR, params.gammaG, params.gammaB));
 				if ((int)points.size() >= params.maxPoints) goto done;
 			}
 
@@ -126,7 +130,8 @@ std::vector<HeliosPointHighRes> buildFrame(
 						points.push_back(screenToLaser(
 							p2, scale, params.outputCentre,
 							params.screenWidth, params.screenHeight,
-							c2, params.intensity));
+							c2, params.intensity,
+							params.gammaR, params.gammaG, params.gammaB));
 						if ((int)points.size() >= params.maxPoints) goto done;
 					}
 				}
@@ -136,12 +141,22 @@ std::vector<HeliosPointHighRes> buildFrame(
 			state.prevColour = c2;
 		}
 
-		// Trailing dwell at last point (lit, not blank)
-		for (int k = 0; k < params.blankCount; k++) {
+		// Trailing dwell at last point: split into lit and blank portions
+		int litDwell = std::max(0, (int)std::round(params.blankCount * (1.0f - params.blankTransition)));
+		int blankDwell = params.blankCount - litDwell;
+
+		for (int k = 0; k < litDwell; k++) {
 			points.push_back(screenToLaser(
 				state.prevPoint, scale, params.outputCentre,
 				params.screenWidth, params.screenHeight,
-				state.prevColour, params.intensity));
+				state.prevColour, params.intensity,
+				params.gammaR, params.gammaG, params.gammaB));
+			if ((int)points.size() >= params.maxPoints) goto done;
+		}
+		for (int k = 0; k < blankDwell; k++) {
+			points.push_back(screenToLaserBlank(
+				state.prevPoint, scale, params.outputCentre,
+				params.screenWidth, params.screenHeight));
 			if ((int)points.size() >= params.maxPoints) goto done;
 		}
 	}

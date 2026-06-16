@@ -17,6 +17,10 @@ namespace ofxHeliosFrame {
 		int screenWidth = 1024;
 		int screenHeight = 768;
 		int maxPoints = HELIOS_MAX_POINTS;
+		float gammaR = 1.0f;       // per-channel gamma correction
+		float gammaG = 1.0f;
+		float gammaB = 1.0f;
+		float blankTransition = 0.5f;  // 0.0-1.0: fraction of dwell points at shape boundaries that are blank
 	};
 
 	struct BuildState {
@@ -41,7 +45,10 @@ namespace ofxHeliosFrame {
 		int screenWidth,
 		int screenHeight,
 		const ofColor& colour,
-		float intensity);
+		float intensity,
+		float gammaR = 1.0f,
+		float gammaG = 1.0f,
+		float gammaB = 1.0f);
 
 	// Blank version (colour = 0)
 	HeliosPointHighRes screenToLaserBlank(
