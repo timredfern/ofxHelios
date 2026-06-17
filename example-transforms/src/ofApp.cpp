@@ -57,7 +57,7 @@ void testApp::draw(){
     int num = laser.draw(squares);
 
     if (num>0){
-        ofSetWindowTitle(ofToString(ofGetFrameRate(), 2)+" fps laser points: "+ofToString(num));
+        ofSetWindowTitle(ofToString(laser.getLaserFps(), 1) + " laser fps  points: " + ofToString(num));
     }
     else {
         ofSetWindowTitle("laser error ");
